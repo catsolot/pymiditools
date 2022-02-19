@@ -23,10 +23,27 @@ def hexarray_to_binary(hex_array):
 def write_midi(output_file, hex_array):
     write_file_helper(output_file, hexarray_to_binary(hex_array))
 
-def print_instruments(hex_array):
+def find_end_of_track(hex_array):
+    """ Returns the index right after an end of track sequence."""
+    for i in range(len(hex_array)):
+        if (hex_array[i] == "ff" and hex_array[i+1] == "2f" and hex_array[i+2] == "00"):
+            return i+2
+
+def list_instruments(hex_array):
+    """ Returns the instrument titles being used in the midi file in a list."""
+    strings = []
+    start_search_index = find_end_of_track(hex_array)
+    for i in range(start_search_index, len(hex_array)):
+        if (hex_array[i][0] == "c"):
+            channel = hex_array[i]
+            instrument_type = hex_array[i+1]
+            string = "{} {}".format(channel, instruments[instrument_type])
+            strings.append(string) 
+    return strings
 
 
 if __name__ == "__main__":
     a = read_file("mary.mid")
-    print(a)
-    write_midi("mary3.mid", a)
+    print_instruments(a)
+    #print(a)
+    #write_midi("mary3.mid", a)
