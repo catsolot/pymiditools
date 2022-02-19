@@ -35,15 +35,18 @@ with open("ins_list.txt", "r") as f:
 
 dictionary = "instruments = {"
 
-for i in range(128):
+for i in range(127):
     string = str(hex(i))
     string = string[2:]
     if (len(string) != 2):
         string = "0" + string
 
     dictionary += '"{}": "{}", '.format(string, instruments[i])
-dictionary += '"{}": "{}" '.format("80", "Gunshot")
+dictionary += '"{}": "{}" '.format("7f", "Gunshot")
 dictionary += "}"
+
+ack = "#Acknowledgement:\n#This document was originally distributed in text format by The International MIDI Association. I have updated it and added new Appendices.\n#© Copyright 1999 David Back.\n#Web: http://midimusic.github.io\n#This document may be freely copied in whole or in part provided the copy contains this Acknowledgement.\n# midi instrument names and hex values come from this site."
 with open("instrument_lookup.py", "w") as f:
+    f.write(ack + "\n")
     f.write(dictionary + "\n")
     # { "key": "value" ... }

@@ -62,7 +62,6 @@ French Horn
 Brass Section
 SynthBrass 1
 SynthBrass 2
-
 Soprano Sax
 Alto Sax
 Tenor Sax
