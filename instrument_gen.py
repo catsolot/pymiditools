@@ -1,3 +1,9 @@
+#Acknowledgement:
+#This document was originally distributed in text format by The International MIDI Association. I have updated it and added new Appendices.
+#© Copyright 1999 David Back.
+#Web: http://midimusic.github.io
+#This document may be freely copied in whole or in part provided the copy contains this Acknowledgement.
+# midi instrument names and hex values come from this site.
 # Script used to process instrument text in inst.txt
 #with open("ins_list.txt", "r") as f:
 #    a = f.read()
