@@ -1,4 +1,4 @@
-INSTRUMENTS = {
+from instrument_lookup import instruments
 
 def read_file(input_file):
     """ Read a midi file and returns a list of HEX values representing the bytes."""
