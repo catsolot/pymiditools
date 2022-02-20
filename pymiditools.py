@@ -1,3 +1,4 @@
+import sys
 from instrument_lookup import hex_to_instrument, instrument_to_hex
 
 class MIDIFile:
@@ -28,9 +29,7 @@ class MIDIFile:
         #print("searching")
         while start_index < len(self.hex_array):
             if (self.hex_array[start_index] == "4d" and 
-                self.hex_array[start_index+1] == "54" and 
-                self.hex_array[start_index+2] == "72" and 
-                self.hex_array[start_index+3] == "6b"):
+                self.hex_array[start_index+1] == "54" and self.hex_array[start_index+2] == "72" and self.hex_array[start_index+3] == "6b"):
                     #print("found")
                     #print(self.hex_array[start_index+8]) 
                     return start_index+7    
@@ -82,9 +81,8 @@ class MIDIFile:
             search_index = search_index + 1
 
 if __name__ == "__main__":
-    a = MIDIFile()
+    if (sys.argv[1] == "inst"):
+        a = MIDIFile()
+        a.read_file(sys.argv[2])
+        print(a.list_instruments())
 
-    a.read_file("jd.mid")
-    print(a.list_instruments())
-    #print(a)
-    #write_midi("mary3.mid", a)
