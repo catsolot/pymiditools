@@ -33,20 +33,25 @@ with open("ins_list.txt", "r") as f:
     instruments = f.read().split("\n")
 
 
-dictionary = "instruments = {"
+dictionary1 = "hex_to_instrument = {"
+dictionary2 = "instrument_to_hex = {"
 
 for i in range(127):
-    string = str(hex(i))
-    string = string[2:]
-    if (len(string) != 2):
-        string = "0" + string
+    hex_string = str(hex(i))
+    hex_string = hex_string[2:]
+    if (len(hex_string) != 2):
+        hex_string = "0" + hex_string
 
-    dictionary += '"{}": "{}", '.format(string, instruments[i])
-dictionary += '"{}": "{}" '.format("7f", "Gunshot")
-dictionary += "}"
+    dictionary1 += '"{}": "{}", '.format(hex_string, instruments[i])
+    dictionary2 += '"{}": "{}", '.format(instruments[i], hex_string)
+dictionary1 += '"{}": "{}" '.format("7f", "Gunshot")
+dictionary2 += '"{}": "{}"'.format("Gunshot", "7f")
+dictionary1 += "}"
+dictionary2 += "}"
 
 ack = "#Acknowledgement:\n#This document was originally distributed in text format by The International MIDI Association. I have updated it and added new Appendices.\n#© Copyright 1999 David Back.\n#Web: http://midimusic.github.io\n#This document may be freely copied in whole or in part provided the copy contains this Acknowledgement.\n# midi instrument names and hex values come from this site."
 with open("instrument_lookup.py", "w") as f:
     f.write(ack + "\n")
-    f.write(dictionary + "\n")
+    f.write(dictionary1 + "\n")
+    f.write(dictionary2 + "\n")
     # { "key": "value" ... }
