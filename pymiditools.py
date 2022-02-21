@@ -7,7 +7,7 @@ class MIDIFile:
         self.hex_array = []
 
     def read_file(self, input_file):
-        """ Read a midi file and store it into the object."""
+        """ Read a midi file and store it into the MIDIFile instance."""
         with open(input_file, "rb") as input_file:
             binary_string = input_file.read()
         hex_string = binary_string.hex(" ")
@@ -41,7 +41,7 @@ class MIDIFile:
         return binary_string
     
     def write_file(self, output_file):
-        """Writes the MIDI object to the output file."""
+        """Writes the MIDIFile instance to the output file."""
         with open(output_file, "wb") as output_file:
             output_file.write(self.hexarray_to_binary()) 
     
@@ -111,6 +111,7 @@ class MIDIFile:
         return output
     
     def htoi(self, hex_string):
+        """Converts a hex_string to an integer."""
         return int(hex_string, 16)
 
 
