@@ -110,8 +110,10 @@ if __name__ == "__main__":
         if (sys.argv[1] == "inst"):
             a = MIDIFile()
             a.read_file(sys.argv[2])
-            print(a.list_instruments())
-    
-    a = MIDIFile()
-    a.read_file("mary.mid")
-    print(a.format, a.num_tracks, a.timing, a.tickdiv)
+            #print(a.list_instruments())
+            
+            print(a.format, a.num_tracks, a.timing, a.tickdiv)
+    else: 
+        a = MIDIFile()
+        a.read_file("mary.mid")
+        print(a.format, a.num_tracks, a.timing, a.tickdiv)
