@@ -3,8 +3,13 @@ from instrument_lookup import hex_to_instrument, instrument_to_hex
 
 class MIDIFile:
 
+    MTrk = ["4d", "54", "72", "6b"]
+    MThd = ["4d", "54", "68", "06"]
+    END_TRACK = ["ff", "2f", "00"]
+
     def __init__(self):
         self.hex_array = []
+
 
     def read_file(self, input_file):
         """ Read a midi file and store it into the MIDIFile instance."""
@@ -45,26 +50,20 @@ class MIDIFile:
         with open(output_file, "wb") as output_file:
             output_file.write(self.hexarray_to_binary()) 
     
-    def find_start_track(self, start_index):
+    def find_start_track(self, start):
         """Returns the index after the start track and length of the track."""
         #print("searching")
-        while start_index < len(self.hex_array):
-            if (self.hex_array[start_index] == "4d" and 
-                self.hex_array[start_index+1] == "54" and self.hex_array[start_index+2] == "72" and self.hex_array[start_index+3] == "6b"):
-                    #print("found")
-                    #print(self.hex_array[start_index+8]) 
-                    return start_index+7    
-
-            start_index = start_index + 1
+        for index in range(start, len(self.hex_array) - 4):
+            if self.read_bytes(index, 4) == self.MTrk: 
+                    return index + 7    
         return -1
 
-    def find_end_track(self, start_index):
+    def find_end_track(self, start):
         """ Returns the index right after an end of track sequence."""
-        for i in range(start_index, len(self.hex_array)):
-            if (self.hex_array[i] == "ff" and self.hex_array[i+1] == "2f" 
-                and self.hex_array[i+2] == "00"):
-                #print(self.hex_array[i+3])
-                return i+3
+        for index in range(start, len(self.hex_array) - 3):
+            if (self.read_bytes(index, 3) == self.END_TRACK):
+                return index + 3
+        return -1
     
     def list_instruments(self):
         """ Returns the instrument titles being used in the midi file in a list.
@@ -73,7 +72,6 @@ class MIDIFile:
         search_index = self.find_end_track(0)
         search_index = self.find_start_track(search_index)
         while search_index < len(self.hex_array):
-            #print(search_index, self.hex_array[search_index])
             if (search_index == -1):
                 break
             if (self.hex_array[search_index][0] == "c"):
@@ -122,6 +120,7 @@ if __name__ == "__main__":
             a.read_file(sys.argv[2])
             #print(a.list_instruments())
             
+            print(a.list_instruments())
             print(a.format, a.num_tracks, a.timing, a.tickdiv)
     else: 
         a = MIDIFile()
