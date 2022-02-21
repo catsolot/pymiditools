@@ -12,6 +12,31 @@ class MIDIFile:
             binary_string = input_file.read()
         hex_string = binary_string.hex(" ")
         self.hex_array = hex_string.split(" ")
+        self.read_header()
+
+    def read_header(self):
+        """Reads header information into format, ntracks, and tickdiv.""" 
+        position = 4
+        header_string = ""
+        for i in range(position, 8):
+            header_string += self.hex_array[i]
+        position = 8
+        header_length = int(header_string, 16)
+        header_data = []
+        print(header_length)
+        for i in range(position, position + header_length, 2):
+            header_data.append(int(self.hex_array[i] + 
+                               self.hex_array[i + 1], 16))
+        self.format = header_data[0]
+        self.num_tracks = header_data[1]
+        # The top bit of a 16-bit number determines the timing format. 
+        if (header_data[2] > 32768):
+            self.timing = "timecode"
+            header_data[2] = header_data[2] - 32768
+        else:
+            self.timing = "metrical"
+        self.tickdiv = header_data[2]
+            
 
     def hexarray_to_binary(self):
         """Converts an array of HEX values into a binary sting."""
@@ -71,7 +96,7 @@ class MIDIFile:
         search_index = self.find_end_track(0)
         search_index = self.find_start_track(search_index)
 
-        while search_index < len(self.hex_array):
+        while search_index < len(self.hex_array): 
             if (self.hex_array[search_index] == "54"):
                 search_index = search_index + 7
 
@@ -81,8 +106,12 @@ class MIDIFile:
             search_index = search_index + 1
 
 if __name__ == "__main__":
-    if (sys.argv[1] == "inst"):
-        a = MIDIFile()
-        a.read_file(sys.argv[2])
-        print(a.list_instruments())
-
+    if (len(sys.argv) > 1):
+        if (sys.argv[1] == "inst"):
+            a = MIDIFile()
+            a.read_file(sys.argv[2])
+            print(a.list_instruments())
+    
+    a = MIDIFile()
+    a.read_file("mary.mid")
+    print(a.format, a.num_tracks, a.timing, a.tickdiv)
