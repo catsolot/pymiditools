@@ -11,15 +11,15 @@ class MIDIFile:
         self.hex_array = []
 
 
-    def read_file(self, input_file):
+    def read_file(self, input_file_name: str) -> None:
         """ Read a midi file and store it into the MIDIFile instance."""
-        with open(input_file, "rb") as input_file:
+        with open(input_file_name, "rb") as input_file:
             binary_string = input_file.read()
         hex_string = binary_string.hex(" ")
         self.hex_array = hex_string.split(" ")
         self.read_header()
 
-    def read_header(self):
+    def read_header(self) -> None:
         """Reads header information into format, ntracks, and tickdiv.""" 
         position = 4
         header_string = ""
@@ -39,18 +39,18 @@ class MIDIFile:
             self.timing = "metrical"
         self.tickdiv = timing            
 
-    def hexarray_to_binary(self):
+    def hexarray_to_binary(self) -> bytes:
         """Converts an array of HEX values into a binary sting."""
         hex_string = ''.join(self.hex_array)
         binary_string = bytes.fromhex(hex_string)
         return binary_string
     
-    def write_file(self, output_file):
+    def write_file(self, output_file_name: str) -> None:
         """Writes the MIDIFile instance to the output file."""
-        with open(output_file, "wb") as output_file:
+        with open(output_file_name, "wb") as output_file:
             output_file.write(self.hexarray_to_binary()) 
     
-    def find_start_track(self, start):
+    def find_start_track(self, start: int) -> int:
         """Returns the index after the start track and length of the track."""
         #print("searching")
         for index in range(start, len(self.hex_array) - 4):
@@ -58,14 +58,14 @@ class MIDIFile:
                     return index + 7    
         return -1
 
-    def find_end_track(self, start):
+    def find_end_track(self, start: int) -> int:
         """ Returns the index right after an end of track sequence."""
         for index in range(start, len(self.hex_array) - 3):
             if (self.read_bytes(index, 3) == self.END_TRACK):
                 return index + 3
         return -1
     
-    def list_instruments(self):
+    def list_instruments(self) -> dict:
         """ Returns the instrument titles being used in the midi file in a list.
         """
         strings = {}
@@ -83,7 +83,7 @@ class MIDIFile:
                 search_index = search_index + 1
         return strings
 
-    def change_instrument(self, channel, instrument_name):
+    def change_instrument(self, channel: str, instrument_name: str) -> None:
         """Changes the instrument for a channel to the specified instrument."""
         if (len(instrument_name) != 2):
             instrument_name = instrument_to_hex[instrument_name]
@@ -99,7 +99,7 @@ class MIDIFile:
                 return
             search_index = search_index + 1
     
-    def read_bytes(self, start_position, number_of_bytes):
+    def read_bytes(self, start_position: int, number_of_bytes: int) -> list:
         """Read a certain number of bytes from the hex_array starting at
         start position."""
         output = []
@@ -108,7 +108,7 @@ class MIDIFile:
             output.append(self.hex_array[i]) 
         return output
     
-    def htoi(self, hex_string):
+    def htoi(self, hex_string: str) -> int:
         """Converts a hex_string to an integer."""
         return int(hex_string, 16)
 
