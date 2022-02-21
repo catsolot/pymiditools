@@ -18,25 +18,21 @@ class MIDIFile:
         """Reads header information into format, ntracks, and tickdiv.""" 
         position = 4
         header_string = ""
-        for i in range(position, 8):
-            header_string += self.hex_array[i]
+        for hex_byte in self.read_bytes(4, 4):
+            header_string = header_string + hex_byte
         position = 8
         header_length = int(header_string, 16)
-        header_data = []
-        print(header_length)
-        for i in range(position, position + header_length, 2):
-            header_data.append(int(self.hex_array[i] + 
-                               self.hex_array[i + 1], 16))
-        self.format = header_data[0]
-        self.num_tracks = header_data[1]
+        header_data = self.read_bytes(8, header_length)
+        self.format = self.htoi("".join(header_data[0:2]))
+        self.num_tracks = self.htoi("".join(header_data[2:4]))
+        timing = self.htoi("".join(header_data[4:6]))
         # The top bit of a 16-bit number determines the timing format. 
-        if (header_data[2] > 32768):
+        if (timing  > 32768):
             self.timing = "timecode"
-            header_data[2] = header_data[2] - 32768
+            timing = timing - 32768
         else:
             self.timing = "metrical"
-        self.tickdiv = header_data[2]
-            
+        self.tickdiv = timing            
 
     def hexarray_to_binary(self):
         """Converts an array of HEX values into a binary sting."""
@@ -104,6 +100,19 @@ class MIDIFile:
                 self.hex_array[search_index+1] = instrument_name
                 return
             search_index = search_index + 1
+    
+    def read_bytes(self, start_position, number_of_bytes):
+        """Read a certain number of bytes from the hex_array starting at
+        start position."""
+        output = []
+        end_position = start_position + number_of_bytes 
+        for i in range(start_position, end_position):
+            output.append(self.hex_array[i]) 
+        return output
+    
+    def htoi(self, hex_string):
+        return int(hex_string, 16)
+
 
 if __name__ == "__main__":
     if (len(sys.argv) > 1):
@@ -116,4 +125,6 @@ if __name__ == "__main__":
     else: 
         a = MIDIFile()
         a.read_file("mary.mid")
-        print(a.format, a.num_tracks, a.timing, a.tickdiv)
+        print(a.read_bytes(0,6))
+        print(a.read_bytes(0,5))
+        #print(a.format, a.num_tracks, a.timing, a.tickdiv)
