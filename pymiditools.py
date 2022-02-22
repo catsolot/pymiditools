@@ -126,6 +126,10 @@ class MIDIFile:
             event = MetaEvent(type_byte)
             if (event.read_event(self)):
                 self.meta_events[type_byte] = event.data 
+        for type_byte in MetaEvent.NUMERIC_EVENTS:
+            event = MetaEvent(type_byte)
+            if (event.read_event(self)):
+                self.meta_events[type_byte] = event.data
 
 class Event:
     """This is a representation of a single event that can be found in a MIDI
@@ -137,6 +141,7 @@ class Event:
     def htoi(self, hex_string: str) -> int:
         """Converts a hex_string to an integer."""
         return int(hex_string, 16)
+
     def hex_to_char(self, hex_string: str) -> str:
         """Converts a hex_string to an Unicode charater (string)."""
         return chr(self.htoi(hex_string))
@@ -158,16 +163,13 @@ class MetaEvent(Event):
     #Meta events are of the form ff type length data
    
     TEXT_EVENTS = ["01", "02", "03", "04", "05", "06", "07", "08", "09"]
+    NUMERIC_EVENTS = ["00", "20", "21", "51", "54", "58", "59"]
+    # Do not currently support Sequence Specific Event 
+    # Not including End of Track sequence
 
     def __init__(self, type_byte: str) -> None:
         super().__init__("ff")
-        #if type(length) == str:
-        #    self.length_hex = length
-        #    length = self.htoi(length)
-        #else:
-        #    self.length_hex = hex(length)[2:]
         self.type = type_byte
-        #self.length = length
 
     def read_event(self, midi: MIDIFile) -> bool:
         """Reads the meta-event from MIDIFile midi."""
@@ -178,9 +180,7 @@ class MetaEvent(Event):
 
     def read_event_text(self, midi: MIDIFile) -> bool:
         """Reads a text meta-event from MIDIFile midi."""
-        #search = [self.start, self.type, self.length_hex]
         search = [self.start_byte, self.type]
-        hex_array = midi.hex_array
         start = midi.find_start_track(0)
         position = start
         index = midi.find_byte_sequence(start, search)
@@ -195,7 +195,34 @@ class MetaEvent(Event):
 
     def read_event_numeric(self, midi: MIDIFile) -> bool:
         """Reads a numeric meta-event from MIDIFile midi."""
-        return False
+        search = [self.start_byte, self.type]
+        start = midi.find_start_track(0)
+        position = start
+        index = midi.find_byte_sequence(start, search)
+        if index == -1:
+            return False
+        length = self.htoi(midi.hex_array[index + 2])
+        data = midi.read_bytes(index + 3, length)
+        #for i in range(len(data)):
+        #    data[i] = self.htoi(data[i])
+
+        if (len(data) == 1):
+            self.data = self.htoi(data[0])
+        elif (self.type == "59"):
+            self.data = [self.htoi(data[0]), self.htoi(data[1])]
+        elif ((len(data) == 2) or (len(data) == 3)):
+            hex_string = ""
+            for i in data:
+                hex_string = hex_string + i
+            self.data = self.htoi(hex_string)
+
+        elif ((len(data) == 4) or (len(data) == 5)):
+            for i in range(len(data)):
+                data[i] = self.htoi(data[i])
+            self.data = data
+        else:
+            return False
+        return True
 
 
 if __name__ == "__main__":
