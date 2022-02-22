@@ -65,6 +65,13 @@ class MIDIFile:
                 return index + 3
         return -1
     
+    def find_byte_sequence(self, start: int, byte_sequence: list) -> int:
+        """Returns the index after the start track and length of the track."""
+        #print("searching")
+        for index in range(start, len(self.hex_array) - len(byte_sequence)):
+            if self.read_bytes(index, len(byte_sequence)) == byte_sequence: 
+                    return index    
+        return -1
     def list_instruments(self) -> dict:
         """ Returns the instrument titles being used in the midi file in a list.
         """
@@ -111,6 +118,75 @@ class MIDIFile:
     def htoi(self, hex_string: str) -> int:
         """Converts a hex_string to an integer."""
         return int(hex_string, 16)
+
+
+class Event:
+    """This is a representation of a single event that can be found in a MIDI
+    file."""
+
+    def __init__(self, start: str) -> None:
+        self.start = start
+    
+    def htoi(self, hex_string: str) -> int:
+        """Converts a hex_string to an integer."""
+        return int(hex_string, 16)
+    def hex_to_char(self, hex_string: str) -> str:
+        """Converts a hex_string to an Unicode charater (string)."""
+        return chr(self.htoi(hex_string))
+
+class MIDIEvent(Event):
+    """A single MIDI Event."""
+
+    def __init__(self) -> None:
+        super().__init__()
+
+class SysExEvent(Event):
+    """A single system exclusive Event."""
+
+    def __init__(self) -> None:
+        super().__init__()
+
+class MetaEvent(Event):
+    """A single Meta Event."""
+    #Meta events are of the form ff type length data
+   
+    TEXT_EVENTS = ["01", "02", "03", "04", "05", "06", "07", "08", "09"]
+
+    def __init__(self, type_byte: str, length) -> None:
+        super().__init__("ff")
+        if type(length) == str:
+            self.length_hex = length
+            length = self.htoi(length)
+        else:
+            self.length_hex = hex(length)[2:]
+        self.type = type_byte
+        self.length = length
+
+    def read_event(self, midi: MIDIFile):
+        if (self.type in self.TEXT_EVENTS):
+            print("text")
+            self.read_event_text(midi)
+        else:
+            self.read_event_nums(midi)
+
+    def read_event_text(self, midi: MIDIFile):
+        search = [self.start, self.type, self.length_hex]
+        hex_array = midi.hex_array
+        start = midi.find_start_track(0)
+        position = start
+        index = midi.find_byte_sequence(start, search)
+        data = midi.read_bytes(index + 2, self.length)
+        #for index in range(
+        #for byte in midi.read_bytes(start, 3):
+        #    
+        #    if byte == search:
+        #        data = midi.read_bytes(position, self.length)
+        #        break
+        #    position = position + 1
+        print(data)
+        for i in range(len(data)):
+            data[i] = self.hex_to_char(data[i])
+        self.data = "".join(data)
 
 
 if __name__ == "__main__":
