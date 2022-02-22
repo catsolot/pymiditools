@@ -9,6 +9,7 @@ class MIDIFile:
 
     def __init__(self):
         self.hex_array = []
+        self.meta_events = {}
 
 
     def read_file(self, input_file_name: str) -> None:
@@ -119,6 +120,12 @@ class MIDIFile:
         """Converts a hex_string to an integer."""
         return int(hex_string, 16)
 
+    def read_meta_events(self):
+        """Reads all meta events into a dictionary."""
+        for type_byte in MetaEvent.TEXT_EVENTS:
+            event = MetaEvent(type_byte)
+            if (event.read_event(self)):
+                self.meta_events[type_byte] = event.data 
 
 class Event:
     """This is a representation of a single event that can be found in a MIDI
@@ -152,41 +159,37 @@ class MetaEvent(Event):
    
     TEXT_EVENTS = ["01", "02", "03", "04", "05", "06", "07", "08", "09"]
 
-    def __init__(self, type_byte: str, length) -> None:
+    def __init__(self, type_byte: str) -> None:
         super().__init__("ff")
-        if type(length) == str:
-            self.length_hex = length
-            length = self.htoi(length)
-        else:
-            self.length_hex = hex(length)[2:]
+        #if type(length) == str:
+        #    self.length_hex = length
+        #    length = self.htoi(length)
+        #else:
+        #    self.length_hex = hex(length)[2:]
         self.type = type_byte
-        self.length = length
+        #self.length = length
 
     def read_event(self, midi: MIDIFile):
         if (self.type in self.TEXT_EVENTS):
-            print("text")
-            self.read_event_text(midi)
+            return self.read_event_text(midi)
         else:
-            self.read_event_nums(midi)
+            return self.read_event_nums(midi)
 
     def read_event_text(self, midi: MIDIFile):
-        search = [self.start, self.type, self.length_hex]
+        #search = [self.start, self.type, self.length_hex]
+        search = [self.start, self.type]
         hex_array = midi.hex_array
         start = midi.find_start_track(0)
         position = start
         index = midi.find_byte_sequence(start, search)
-        data = midi.read_bytes(index + 2, self.length)
-        #for index in range(
-        #for byte in midi.read_bytes(start, 3):
-        #    
-        #    if byte == search:
-        #        data = midi.read_bytes(position, self.length)
-        #        break
-        #    position = position + 1
-        print(data)
+        if index == -1:
+            return False
+        length = self.htoi(midi.hex_array[index + 2])
+        data = midi.read_bytes(index + 3, length)
         for i in range(len(data)):
             data[i] = self.hex_to_char(data[i])
         self.data = "".join(data)
+        return True
 
 
 if __name__ == "__main__":
