@@ -173,13 +173,6 @@ class MetaEvent(Event):
 
     def read_event(self, midi: MIDIFile) -> bool:
         """Reads the meta-event from MIDIFile midi."""
-        if (self.type in self.TEXT_EVENTS):
-            return self.read_event_text(midi)
-        else:
-            return self.read_event_numeric(midi)
-
-    def read_event_text(self, midi: MIDIFile) -> bool:
-        """Reads a text meta-event from MIDIFile midi."""
         search = [self.start_byte, self.type]
         start = midi.find_start_track(0)
         position = start
@@ -188,24 +181,21 @@ class MetaEvent(Event):
             return False
         length = self.htoi(midi.hex_array[index + 2])
         data = midi.read_bytes(index + 3, length)
+
+        if (self.type in self.TEXT_EVENTS):
+            return self.read_event_text(data)
+        else:
+            return self.read_event_numeric(data)
+
+    def read_event_text(self, data: list) -> bool:
+        """Reads a text meta-event from MIDIFile midi."""
         for i in range(len(data)):
             data[i] = self.hex_to_char(data[i])
         self.data = "".join(data)
         return True
 
-    def read_event_numeric(self, midi: MIDIFile) -> bool:
+    def read_event_numeric(self, data: list) -> bool:
         """Reads a numeric meta-event from MIDIFile midi."""
-        search = [self.start_byte, self.type]
-        start = midi.find_start_track(0)
-        position = start
-        index = midi.find_byte_sequence(start, search)
-        if index == -1:
-            return False
-        length = self.htoi(midi.hex_array[index + 2])
-        data = midi.read_bytes(index + 3, length)
-        #for i in range(len(data)):
-        #    data[i] = self.htoi(data[i])
-
         if (len(data) == 1):
             self.data = self.htoi(data[0])
         elif (self.type == "59"):
@@ -215,7 +205,6 @@ class MetaEvent(Event):
             for i in data:
                 hex_string = hex_string + i
             self.data = self.htoi(hex_string)
-
         elif ((len(data) == 4) or (len(data) == 5)):
             for i in range(len(data)):
                 data[i] = self.htoi(data[i])
