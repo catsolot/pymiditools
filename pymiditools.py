@@ -131,8 +131,8 @@ class Event:
     """This is a representation of a single event that can be found in a MIDI
     file."""
 
-    def __init__(self, start: str) -> None:
-        self.start = start
+    def __init__(self, start_byte: str) -> None:
+        self.start_byte = start_byte
     
     def htoi(self, hex_string: str) -> int:
         """Converts a hex_string to an integer."""
@@ -144,14 +144,14 @@ class Event:
 class MIDIEvent(Event):
     """A single MIDI Event."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, start_byte: str) -> None:
+        super().__init__(start_byte)
 
 class SysExEvent(Event):
     """A single system exclusive Event."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, start_byte: str) -> None:
+        super().__init__(start_byte)
 
 class MetaEvent(Event):
     """A single Meta Event."""
@@ -169,15 +169,17 @@ class MetaEvent(Event):
         self.type = type_byte
         #self.length = length
 
-    def read_event(self, midi: MIDIFile):
+    def read_event(self, midi: MIDIFile) -> bool:
+        """Reads the meta-event from MIDIFile midi."""
         if (self.type in self.TEXT_EVENTS):
             return self.read_event_text(midi)
         else:
-            return self.read_event_nums(midi)
+            return self.read_event_numeric(midi)
 
-    def read_event_text(self, midi: MIDIFile):
+    def read_event_text(self, midi: MIDIFile) -> bool:
+        """Reads a text meta-event from MIDIFile midi."""
         #search = [self.start, self.type, self.length_hex]
-        search = [self.start, self.type]
+        search = [self.start_byte, self.type]
         hex_array = midi.hex_array
         start = midi.find_start_track(0)
         position = start
@@ -190,6 +192,10 @@ class MetaEvent(Event):
             data[i] = self.hex_to_char(data[i])
         self.data = "".join(data)
         return True
+
+    def read_event_numeric(self, midi: MIDIFile) -> bool:
+        """Reads a numeric meta-event from MIDIFile midi."""
+        return False
 
 
 if __name__ == "__main__":
