@@ -10,6 +10,9 @@ class MIDIFile:
     def __init__(self):
         self.hex_array = []
         self.meta_events = {}
+        self.header = []
+        self.chunks = []
+        self.events = []
 
 
     def read_file(self, input_file_name: str) -> None:
@@ -19,6 +22,7 @@ class MIDIFile:
         hex_string = binary_string.hex(" ")
         self.hex_array = hex_string.split(" ")
         self.read_header()
+        self.read_track_chunks();
 
     def read_header(self) -> None:
         """Reads header information into format, ntracks, and tickdiv.""" 
@@ -28,7 +32,9 @@ class MIDIFile:
             header_string = header_string + hex_byte
         position = 8
         header_length = int(header_string, 16)
+        header_start = self.read_bytes(0, 8)
         header_data = self.read_bytes(8, header_length)
+        self.chunks.append(header_start + header_data)
         self.format = self.htoi("".join(header_data[0:2]))
         self.num_tracks = self.htoi("".join(header_data[2:4]))
         timing = self.htoi("".join(header_data[4:6]))
@@ -40,6 +46,25 @@ class MIDIFile:
             self.timing = "metrical"
         self.tickdiv = timing            
 
+    def read_track_chunks(self):
+        """Reads track chunks from the MIDIFile."""
+        position = len(self.chunks[0])
+        end = 0
+        # Find start track. Find end track. Read bytes from start to end.
+        while (end < len(self.hex_array)):
+            start = self.find_start_track(position)
+            if (start == -1):
+                return
+            end = self.find_end_track(start)  
+            if (end == -1):
+                end = len(self.hex_array) 
+                chunk = self.read_bytes(start, end - start)
+            else:
+                chunk = self.read_bytes(start, 3 + end - start)
+            position = end
+            self.chunks.append(chunk)
+
+         
     def hexarray_to_binary(self) -> bytes:
         """Converts an array of HEX values into a binary sting."""
         hex_string = ''.join(self.hex_array)
@@ -56,14 +81,14 @@ class MIDIFile:
         #print("searching")
         for index in range(start, len(self.hex_array) - 4):
             if self.read_bytes(index, 4) == self.MTrk: 
-                    return index + 7    
+                    return index    
         return -1
 
     def find_end_track(self, start: int) -> int:
         """ Returns the index right after an end of track sequence."""
         for index in range(start, len(self.hex_array) - 3):
             if (self.read_bytes(index, 3) == self.END_TRACK):
-                return index + 3
+                return index
         return -1
     
     def find_byte_sequence(self, start: int, byte_sequence: list) -> int:

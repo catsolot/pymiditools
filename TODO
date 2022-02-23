@@ -1,0 +1,2 @@
+1. MIDIFile object should be a sequence of Chunks that are made of Events
+
