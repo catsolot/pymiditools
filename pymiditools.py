@@ -146,12 +146,16 @@ class Event:
         """Converts a hex_string to an Unicode charater (string)."""
         return chr(self.htoi(hex_string))
 
+
 class MIDIEvent(Event):
     """A single MIDI Event."""
-
     def __init__(self, start_byte: str) -> None:
         super().__init__(start_byte)
 
+    def parse_delta_time(self, start):
+        """Reads the delta time of an event."""
+        
+    
 class SysExEvent(Event):
     """A single system exclusive Event."""
 
